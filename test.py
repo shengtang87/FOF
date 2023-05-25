@@ -60,6 +60,7 @@ def test(args):
             ceof = net((img / 127.5 - 1) * mask) * mask
             v, f = e.decode(ceof[0])
 
+            colored_v = []
             # Load original image
             original_img = cv2.imread(os.path.join(args.input, d), -1)
             original_img_b = cv2.imread(os.path.join(args.input, 'young_back.png'), -1)
@@ -83,6 +84,7 @@ def test(args):
                     else : color = original_img_b[-py, px]
 
                     r, g, b = color[0], color[1], color[2]
+                    colored_v.append((x, y, z, r, g, b))
 
                     mf.write("v %f %f %f %f %f %f\n" % (x, y, z, r / 255.0, g / 255.0, b / 255.0))
 
@@ -101,14 +103,14 @@ def test(args):
                 mtl_file.write("Ns 0.0\n")  # Specular exponent
                 mtl_file.write("illum 2\n")  # Illumination model
 
-                # for i, vertex in enumerate(colored_v):
-                #     r, g, b = vertex[3:]
-                #     mtl_file.write("newmtl material%d\n" % i)
-                #     mtl_file.write("Ka 0.2 0.2 0.2\n")
-                #     mtl_file.write("Kd %f %f %f\n" % (r / 255.0, g / 255.0, b / 255.0))
-                #     mtl_file.write("Ks 0.0 0.0 0.0\n")
-                #     mtl_file.write("Ns 0.0\n")
-                #     mtl_file.write("illum 2\n")
+                for i, vertex in enumerate(colored_v):
+                    r, g, b = vertex[3:]
+                    mtl_file.write("newmtl material%d\n" % i)
+                    mtl_file.write("Ka 0.2 0.2 0.2\n")
+                    mtl_file.write("Kd %f %f %f\n" % (r / 255.0, g / 255.0, b / 255.0))
+                    mtl_file.write("Ks 0.0 0.0 0.0\n")
+                    mtl_file.write("Ns 0.0\n")
+                    mtl_file.write("illum 2\n")
 
             end_time = time.time()
             print(f"Iteration took {end_time - start_time:.4f} seconds")
