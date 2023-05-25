@@ -62,18 +62,7 @@ def test(args):
 
             # Load original image
             original_img = cv2.imread(os.path.join(args.input, d), -1)
-
-            # Apply colors to vertices
-            colored_v = []
-            for vertex in v:
-                x, y, z = vertex
-                # Convert 3D model vertex coordinates to pixel coordinates of the original image
-                px = int((x + 1) * 0.5 * (512 - 1))
-                py = int((y + 1) * 0.5 * (512 - 1))
-                # Get color value at the corresponding pixel position
-                color = original_img[-py, px]
-                # Add color information to the vertex list
-                colored_v.append((x, y, z, color[0], color[1], color[2]))
+            original_img_b = cv2.imread(os.path.join(args.input, 'young_back.png'), -1)
 
             # Write colored vertices to OBJ file
             with open(os.path.join(args.output, d.replace(".png", ".obj")), "w") as mf:
@@ -83,8 +72,18 @@ def test(args):
                 mf.write("usemtl material\n")
 
                 # Write vertex and color information
-                for vertex in colored_v:
-                    x, y, z, r, g, b = vertex
+                
+                for vertex in v:                    
+                    x, y, z = vertex
+                    # Convert 3D model vertex coordinates to pixel coordinates of the original image
+                    px = int((x + 1) * 0.5 * (512 - 1))
+                    py = int((y + 1) * 0.5 * (512 - 1))
+                    # Get color value at the corresponding pixel position
+                    if (z>=0): color = original_img[-py, px]
+                    else : color = original_img_b[-py, px]
+
+                    r, g, b = color[0], color[1], color[2]
+
                     mf.write("v %f %f %f %f %f %f\n" % (x, y, z, r / 255.0, g / 255.0, b / 255.0))
 
                 # Write face information
@@ -102,14 +101,14 @@ def test(args):
                 mtl_file.write("Ns 0.0\n")  # Specular exponent
                 mtl_file.write("illum 2\n")  # Illumination model
 
-                for i, vertex in enumerate(colored_v):
-                    r, g, b = vertex[3:]
-                    mtl_file.write("newmtl material%d\n" % i)
-                    mtl_file.write("Ka 0.2 0.2 0.2\n")
-                    mtl_file.write("Kd %f %f %f\n" % (r / 255.0, g / 255.0, b / 255.0))
-                    mtl_file.write("Ks 0.0 0.0 0.0\n")
-                    mtl_file.write("Ns 0.0\n")
-                    mtl_file.write("illum 2\n")
+                # for i, vertex in enumerate(colored_v):
+                #     r, g, b = vertex[3:]
+                #     mtl_file.write("newmtl material%d\n" % i)
+                #     mtl_file.write("Ka 0.2 0.2 0.2\n")
+                #     mtl_file.write("Kd %f %f %f\n" % (r / 255.0, g / 255.0, b / 255.0))
+                #     mtl_file.write("Ks 0.0 0.0 0.0\n")
+                #     mtl_file.write("Ns 0.0\n")
+                #     mtl_file.write("illum 2\n")
 
             end_time = time.time()
             print(f"Iteration took {end_time - start_time:.4f} seconds")
