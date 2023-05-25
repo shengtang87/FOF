@@ -15,8 +15,10 @@ from lib.utils.utils import Recon
 def test(args):
     torch.backends.cudnn.benchmark = True
 
-    device = torch.device("cuda:%d"%args.gpu_id)
-    print("using device:", device)
+    if torch.cuda.is_available():
+        device = torch.device("cuda")
+    else:
+        device = torch.device("cpu")
 
     e = Recon(device)
 
@@ -44,6 +46,7 @@ def test(args):
     net.eval()
     with torch.no_grad():
         for d in input_dir:
+            print(d)
             img = cv2.imread(os.path.join(args.input, d), -1)
             mask = img[:,:,3:4]
             img = img[:,:,:3]
@@ -69,4 +72,3 @@ if __name__ == '__main__':
     parser.add_argument("--output", type=str, default="output", help="path of the output_dir")
     args = parser.parse_args()
     test(args)
-    

@@ -31,11 +31,17 @@ class Warper(nn.Module):
 
 
 torch.backends.cudnn.benchmark = True
-device = torch.device("cuda:0")
+# device = torch.device("cuda:0")
+
+if torch.cuda.is_available():
+    device = torch.device("cuda")  # 設置設備為 GPU
+else:
+    device = torch.device("cpu")   # 設置設備為 CPU
+
 
 
 engine = Warper(device).to(device)
-state_dict = torch.load("ckpt/base/000.pth")
+state_dict = torch.load("ckpt/base/010.pth")
 engine.net.load_state_dict(state_dict["net"])
 
 
@@ -56,3 +62,24 @@ with torch.no_grad():
     for _ in tqdm.tqdm(range(1000)):
         output = tr(img, mask)
         v, f = marching_cubes(output[0], 0.5)
+
+
+
+v += 0.5
+v = v/256 - 1
+v[:,1] *= -1
+vv = np.zeros_like(v)
+vv[:,0] = v[:,2]
+vv[:,1] = v[:,1]
+vv[:,2] = v[:,0]
+
+ff = np.zeros_like(f)
+ff[:,0] = f[:,0]
+ff[:,1] = f[:,2]
+ff[:,2] = f[:,1]
+
+with open(os.path.join('output','output.obj'), "w") as mf:
+    for i in vv:
+        mf.write("v %f %f %f\n" % (i[0], i[1], i[2]))
+    for i in ff:
+        mf.write("f %d %d %d\n" % (i[0]+1, i[1]+1, i[2]+1))
